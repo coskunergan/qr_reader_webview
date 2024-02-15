@@ -47,7 +47,7 @@ ApplicationWindow
     Camera
     {
         id:camera
-        active: true
+        active: false
         focusMode: Camera.FocusModeAutoNear
     }
 
@@ -59,6 +59,9 @@ ApplicationWindow
     VideoOutput
     {
         id: videoOutput
+        //width: 480
+        //height: 385
+        //anchors.centerIn: parent
         anchors.top: text1.bottom
         anchors.bottom: text2.top
         anchors.left: parent.left
@@ -73,6 +76,7 @@ ApplicationWindow
         MouseArea {
             anchors.fill: parent
             onClicked: {
+                //camera.active = true;
                 camera.customFocusPoint = Qt.point(mouseX / width,  mouseY / height);
                 camera.focusMode = Camera.FocusModeManual;
             }
