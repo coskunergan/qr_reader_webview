@@ -1,21 +1,87 @@
-import QtQuick 2.5
-import QtQuick.Window 2.0
-import QtQuick.Controls 2.0
-import QtQuick.Layouts 1.1
+import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
+import QtQuick.Layouts
 import QtMultimedia
+import QtWebView
 
-import QZXing 3.3
+import QZXing
 
 ApplicationWindow
 {
     id: window
     visible: true
-    width: 640
-    height: 480
-    title: "Qt QZXing Filter Test"
+    x: initialX
+    y: initialY
+    width: initialWidth
+    height: initialHeight
+    title: "QR Reader"
 
     property int detectedTags: 0
     property string lastTag: ""
+
+    menuBar: ToolBar {
+        id: navigationBar
+        visible:false
+        RowLayout {
+            anchors.fill: parent
+            spacing: 0
+
+            ToolButton {
+                id: backButton
+                icon.source: "qrc:/icons/left-32.png"
+                onClicked:
+                {
+                    webView.visible=false;
+                    navigationBar.visible=false;
+                    camera.active = true;
+                    videoOutput.visible=true;
+                }
+                Layout.preferredWidth: navigationBar.height
+            }
+
+            Item { Layout.preferredWidth: 5 }
+
+            ToolButton {
+                id: reloadButton
+                icon.source: webView.loading ? "qrc:/icons/stop-32.png" : "qrc:/icons/refresh-32.png"
+                onClicked: webView.loading ? webView.stop() : webView.reload()
+                Layout.preferredWidth: navigationBar.height
+            }
+
+            Item { Layout.preferredWidth: 10 }
+         }
+         ProgressBar {
+             id: progress
+             anchors {
+                left: parent.left
+                top: parent.bottom
+                right: parent.right
+                leftMargin: parent.leftMargin
+                rightMargin: parent.rightMargin
+             }
+             height:3
+             z: Qt.platform.os === "android" ? -1 : -2
+             background: Item {}
+             visible: Qt.platform.os !== "ios" && Qt.platform.os !== "winrt"
+             from: 0
+             to: 100
+             value: webView.loadProgress < 100 ? webView.loadProgress : 0
+        }
+    }
+
+    WebView {
+        id: webView
+        visible: false
+        url: initialUrl
+        anchors.right: parent.right
+        anchors.left: parent.left
+        height: parent.height
+        onLoadingChanged: function(loadRequest) {
+            if (loadRequest.errorString)
+                console.error(loadRequest.errorString);
+        }
+    }
 
     Rectangle
     {       
@@ -59,11 +125,8 @@ ApplicationWindow
     VideoOutput
     {
         id: videoOutput
-        //width: 480
-        //height: 385
-        //anchors.centerIn: parent
         anchors.top: text1.bottom
-        anchors.bottom: text2.top
+        anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         //fillMode: VideoOutput.Stretch
@@ -75,8 +138,8 @@ ApplicationWindow
 
         MouseArea {
             anchors.fill: parent
-            onClicked: {
-                //camera.active = true;
+            onClicked: {                
+                camera.active = true;
                 camera.customFocusPoint = Qt.point(mouseX / width,  mouseY / height);
                 camera.focusMode = Camera.FocusModeManual;
             }
@@ -131,6 +194,11 @@ ApplicationWindow
 
                 window.detectedTags++;
                 window.lastTag = tag;
+                camera.active = false;
+                videoOutput.visible=false;                
+                webView.url = utils.fromUserInput(tag);
+                webView.visible=true;
+                navigationBar.visible=true;
             }
 
             tryHarder: false
@@ -151,34 +219,5 @@ ApplicationWindow
            if(succeeded)
             console.log("frame finished: " + succeeded, decodeTime, timePerFrameDecode, framesDecoded);
         }
-    }
-
-    Text
-    {
-        id: text2
-        wrapMode: Text.Wrap
-        font.pixelSize: 20
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        z: 50
-        text: "Last tag: " + lastTag
-    }
-    Switch {
-        text: "Autofocus"
-        checked: camera.focusMode === Camera.FocusModeAutoNear
-        anchors {
-            right: parent.right
-            bottom: parent.bottom
-        }
-        onCheckedChanged: {
-            if (checked) {
-                camera.focusMode = Camera.FocusModeAutoNear
-            } else {
-                camera.focusMode = Camera.FocusModeManual
-                camera.customFocusPoint = Qt.point(0.5,  0.5)
-            }
-        }
-        font.family: Qt.platform.os === 'android' ? 'Droid Sans Mono' : 'Monospace'
-        font.pixelSize: Screen.pixelDensity * 5
     }
 }

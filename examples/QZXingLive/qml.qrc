@@ -2,5 +2,10 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>main_qt6_2.qml</file>
+		<file>icons/left-32.png</file>
+		<file>icons/refresh-32.png</file>
+		<file>icons/stop-32.png</file>
+		<file>icons/right-32.png</file>
+		<file>icons/settings-32.png</file>
     </qresource>
 </RCC>

@@ -1,5 +1,7 @@
 TEMPLATE = app
 
+QT += qml quick webview
+
 CONFIG += qzxing_multimedia \
           enable_decoder_1d_barcodes \
           enable_decoder_qr_code \
